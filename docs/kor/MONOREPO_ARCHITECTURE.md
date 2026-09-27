@@ -99,8 +99,8 @@ Skia](https://shopify.github.io/react-native-skia/) 캔버스로 만들어졌습
   `expo prebuild`로 두 플랫폼 모두에 반영됩니다. iOS는 현재 실행 즉시 종료됩니다 —
   `Info.plist`에 `UIApplicationSceneManifest`가 없어 이 SDK의 UIKit이 요구하는
   UIScene 라이프사이클 채택이 되어 있지 않기 때문이며, 이 역시 다음 스프린트로
-  넘겼습니다. Android는 실기기에서 빌드·설치 후 타이틀 화면까지 도달하는 것을
-  확인했습니다.
+  넘겼습니다. Android는 Pixel 8 에뮬레이터에서 빌드·설치 후 타이틀 화면까지
+  도달하는 것을 확인했습니다.
 - **서체**는 시스템 모노스페이스 폰트입니다(`mobile/src/ui/theme.ts`). 기존
   Galmuri14 비트맵 폰트와 `expo-font` 로딩 게이트는 이번 스프린트에서
   제거했습니다.
@@ -129,9 +129,9 @@ npm run export:android --workspace @codigdex/mobile
 npm run export:ios --workspace @codigdex/mobile
 ```
 
-이 앱은 Expo Go에 없는 네이티브 모듈(`@shopify/react-native-skia`,
-`react-native-reanimated`, `react-native-worklets`)에 의존하므로 Expo Go /
-QR 코드 경로가 없습니다. 먼저 네이티브 개발 빌드를 빌드·설치한 뒤 Metro를
+이 프로젝트는 Expo Go가 아니라 네이티브 개발/빌드 워크플로(`expo run`,
+`expo start --dev-client`)로 구성되어 있으며, Expo Go로 실행하는 경로는
+검증되지 않았습니다. 먼저 네이티브 개발 빌드를 빌드·설치한 뒤 Metro를
 띄웁니다.
 
 ```bash

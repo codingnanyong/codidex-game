@@ -114,12 +114,11 @@ sprint; `App.tsx` renders immediately, with no font-loading splash state.
 
 ## Running it
 
-This app depends on native modules Expo Go does not ship —
-`@shopify/react-native-skia`, `react-native-reanimated`,
-`react-native-worklets` — so `start` targets a custom dev/native build
-(`expo start --dev-client`) instead of Expo Go. Install once from the
-repository root (`npm ci`, Node 22.x), build and install that native build,
-then start Metro:
+This project is configured for a native dev/build workflow — `start` targets a
+custom dev/native build (`expo start --dev-client`), not Expo Go, and running
+it under Expo Go has not been validated. Install once from the repository
+root (`npm ci`, Node 22.x), build and install that native build, then start
+Metro:
 
 ```bash
 npm run android --workspace @codigdex/mobile   # generate assets, expo run:android — build, install, launch
@@ -128,8 +127,8 @@ npm run ios --workspace @codigdex/mobile       # generate assets, expo run:ios �
 npm run start --workspace @codigdex/mobile     # generate assets, expo start --dev-client
 ```
 
-There is no Expo Go / QR-code path and no tunnel script for this app anymore.
-To open the native IDE projects directly instead of building from the CLI:
+There is no tunnel script for this app anymore. To open the native IDE
+projects directly instead of building from the CLI:
 
 ```bash
 npm run open:android --workspace @codigdex/mobile   # opens android/ in Android Studio
@@ -162,8 +161,8 @@ one platform:
 
 | Script | Command it runs | Output |
 | --- | --- | --- |
-| `export:android` | `expo export --platform android --output-dir .tmp-expo-export/android` | `_expo/static/js/android/entry-*.hbc` |
-| `export:ios` | `expo export --platform ios --output-dir .tmp-expo-export/ios` | `_expo/static/js/ios/entry-*.hbc` |
+| `export:android` | `expo export --platform android --output-dir .tmp-expo-export/android` | `_expo/static/js/android/*.hbc` |
+| `export:ios` | `expo export --platform ios --output-dir .tmp-expo-export/ios` | `_expo/static/js/ios/*.hbc` |
 
 Each one produces a full Metro bundle plus Hermes bytecode for its platform.
 They are the cheapest way to catch a bundler-level break — an unresolved
@@ -194,8 +193,9 @@ web build.
 
 - `typecheck`, `lint`, and the full repository's 475 unit tests pass.
 - Both `export:android` and `export:ios` succeed.
-- Android: `npm run android` built and installed the ARM64 native app and
-  reached the title screen on a Pixel 8.
+- Android: a native ARM64 debug build (`./gradlew :app:assembleDebug
+  -PreactNativeArchitectures=arm64-v8a`), `adb install`, and Metro reached the
+  title screen on a Pixel 8 emulator.
 - iOS: an Xcode 27 / iOS 27 simulator build and install succeed, but the app
   exits immediately — see [Known limitations](#known-limitations).
 
@@ -205,8 +205,8 @@ Accepted as next-sprint work, not blocking this sprint's completion:
 
 - **iOS exits on launch.** `ios/Codigdex/Info.plist` has no
   `UIApplicationSceneManifest`; UIKit on this SDK requires UIScene lifecycle
-  adoption, and the app crashes immediately after install on both the
-  simulator and (expected) real devices.
+  adoption, and the app crashes immediately after install on the Xcode 27 /
+  iOS 27 simulator. Real devices are untested.
 - **No full on-device validation yet** of movement, battle, capture, and
   save persistence end to end on either platform, and no check yet that the
   web (Phaser) and mobile (Skia) experiences look/feel consistent.

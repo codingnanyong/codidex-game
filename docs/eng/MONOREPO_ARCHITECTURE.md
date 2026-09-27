@@ -100,7 +100,7 @@ the world scene. See `mobile/README.md` for the full walkthrough.
   `Info.plist` has no `UIApplicationSceneManifest`, and UIKit on this SDK
   requires UIScene lifecycle adoption — which is also accepted next-sprint
   work; Android has been confirmed to build, install, and reach the title
-  screen on a physical device.
+  screen on a Pixel 8 emulator.
 - **Typography** is the system monospace font (`mobile/src/ui/theme.ts`); the
   earlier Galmuri14 bitmap font and its `expo-font` loading gate were dropped
   this sprint.
@@ -129,10 +129,10 @@ npm run export:android --workspace @codigdex/mobile
 npm run export:ios --workspace @codigdex/mobile
 ```
 
-The app depends on native modules Expo Go does not ship
-(`@shopify/react-native-skia`, `react-native-reanimated`,
-`react-native-worklets`), so there is no Expo Go / QR-code path. Build and
-install a native dev build first, then start Metro against it:
+This project is configured for a native dev/build workflow — `expo run` and
+`expo start --dev-client` — not Expo Go; running it under Expo Go has not
+been validated. Build and install a native dev build first, then start Metro
+against it:
 
 ```bash
 npm run android --workspace @codigdex/mobile   # build, install, and launch on Android
