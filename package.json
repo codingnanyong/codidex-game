@@ -6,6 +6,10 @@
   "engines": {
     "node": "22.x"
   },
+  "overrides": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
   "workspaces": [
     "web",
     "mobile",
@@ -13,10 +17,17 @@
   ],
   "scripts": {
     "build:web": "npm run build --workspace @codigdex/web",
+    "build:mobile": "npm run export:android --workspace @codigdex/mobile && npm run export:ios --workspace @codigdex/mobile",
     "check:boundaries": "node scripts/check-package-boundaries.mjs",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "test:e2e": "npm run test:e2e --workspace @codigdex/web",
+    "mobile:android": "npm run open:android --workspace @codigdex/mobile",
+    "mobile:ios": "npm run open:ios --workspace @codigdex/mobile",
     "typecheck": "npm run check:boundaries && npm run typecheck --workspaces --if-present"
+  },
+  "dependencies": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
   }
 }

@@ -23,15 +23,16 @@ import {
 } from "@codigdex/game-content/domain/player/jobs";
 import { DEFAULT_LOCALE, detectLocale, isLocale, type Locale } from "@codigdex/game-core/i18n/locale";
 import { createSave, parseSave } from "@codigdex/game-core/save/schema";
+import { SAVE_STORAGE_KEYS } from "@codigdex/game-core/save/storage";
 import { completedCareerPathIds } from "./worldMap/careerPaths";
 
 const CARDS_KEY = "cards";
 const CAREER_DEX_KEY = "careerDex";
 export const TUTORIAL_ONBOARDING_SEEN_KEY = "tutorialOnboardingSeen";
 export const LOCALE_REGISTRY_KEY = "locale";
-export const SAVE_STORAGE_KEY = "codigdex:save:v3";
-export const PREVIOUS_SAVE_STORAGE_KEY = "codigdex:save:v2";
-export const LEGACY_SAVE_STORAGE_KEY = "codigdex:save:v1";
+export const SAVE_STORAGE_KEY = SAVE_STORAGE_KEYS.current;
+export const PREVIOUS_SAVE_STORAGE_KEY = SAVE_STORAGE_KEYS.previous;
+export const LEGACY_SAVE_STORAGE_KEY = SAVE_STORAGE_KEYS.legacy;
 
 function preferredLanguages(): readonly string[] | undefined {
   if (typeof navigator === "undefined") return undefined;

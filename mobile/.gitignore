@@ -1,0 +1,17 @@
+
+.DS_Store
+
+# Expo and local export state.
+.expo/
+.tmp-expo-export/
+expo-env.d.ts
+
+# Native build products and local IDE state.
+android/.gradle/
+android/build/
+android/local.properties
+android/app/build/
+ios/build/
+ios/Pods/
+ios/*.xcworkspace/xcuserdata/
+ios/*.xcodeproj/xcuserdata/

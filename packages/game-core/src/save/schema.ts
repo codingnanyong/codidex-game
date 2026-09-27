@@ -47,6 +47,18 @@ export interface SaveSnapshot {
   locale?: Locale;
 }
 
+export function createEmptySave(locale?: Locale): StoredGameStateV3 {
+  return createSave({
+    captures: [],
+    careers: [],
+    primaryJobId: "junior",
+    secondaryJobId: null,
+    tertiaryJobId: null,
+    tutorialOnboardingSeen: false,
+    locale,
+  });
+}
+
 export function createSave(snapshot: SaveSnapshot): StoredGameStateV3 {
   return {
     version: 3,
