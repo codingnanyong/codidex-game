@@ -1,22 +1,21 @@
-import { createEmptySave, type StoredGameStateV3 } from "@codigdex/game-core/save/schema";
 import type { Locale } from "@codigdex/game-core/i18n/locale";
+import { createEmptySave, type StoredGameStateV3 } from "@codigdex/game-core/save/schema";
 import { createContext, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
 import { mobileSaveStorage } from "@/storage/asyncStorage";
-import { clearCapturedMonsters, createDemoSave } from "@/testing/demoSave";
 
 interface SaveContextValue {
+  capture(monsterId: string): void;
+  clearProgress(): void;
   hydrated: boolean;
   locale: Locale;
   save: StoredGameStateV3;
-  clearCaptures(): void;
-  loadDemoCaptures(): void;
   setLocale(locale: Locale): void;
 }
 
 const SaveContext = createContext<SaveContextValue | undefined>(undefined);
 
 export function SaveProvider({ children }: PropsWithChildren) {
-  const [save, setSave] = useState<StoredGameStateV3>(() => createEmptySave());
+  const [save, setSave] = useState<StoredGameStateV3>(() => createEmptySave("ko"));
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -26,35 +25,39 @@ export function SaveProvider({ children }: PropsWithChildren) {
       setSave(stored);
       setHydrated(true);
     });
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, []);
 
+  const update = (produce: (current: StoredGameStateV3) => StoredGameStateV3) => {
+    setSave((current) => {
+      const next = produce(current);
+      void mobileSaveStorage.save(next).catch(() => undefined);
+      return next;
+    });
+  };
+
   const value = useMemo<SaveContextValue>(() => ({
-    clearCaptures() {
-      setSave((current) => {
-        const next = clearCapturedMonsters(current);
-        void mobileSaveStorage.save(next).catch(() => undefined);
-        return next;
-      });
+    capture(monsterId) {
+      update((current) => current.progress.captures.some(({ id }) => id === monsterId)
+        ? current
+        : {
+            ...current,
+            progress: {
+              ...current.progress,
+              captures: [...current.progress.captures, { id: monsterId, capturedAt: new Date().toISOString() }],
+            },
+          });
+    },
+    clearProgress() {
+      const empty = createEmptySave(save.ui.locale ?? "ko");
+      setSave(empty);
+      void mobileSaveStorage.save(empty).catch(() => undefined);
     },
     hydrated,
-    loadDemoCaptures() {
-      setSave((current) => {
-        const next = createDemoSave(current);
-        void mobileSaveStorage.save(next).catch(() => undefined);
-        return next;
-      });
-    },
     locale: save.ui.locale ?? "ko",
     save,
     setLocale(locale) {
-      setSave((current) => {
-        const next = { ...current, ui: { ...current.ui, locale } };
-        void mobileSaveStorage.save(next).catch(() => undefined);
-        return next;
-      });
+      update((current) => ({ ...current, ui: { ...current.ui, locale } }));
     },
   }), [hydrated, save]);
 

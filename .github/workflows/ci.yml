@@ -27,17 +27,10 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
-      # Metro/Hermes bundling only — no Android SDK or Xcode is involved. Both
-      # platforms run in this job so the second export reuses the warm Metro
-      # transform cache instead of paying for a second checkout and `npm ci`.
-      - name: Verify Android Expo export
-        run: npm run export:android --workspace @codigdex/mobile
-        env:
-          CI: "true"
-      - name: Verify iOS Expo export
-        run: npm run export:ios --workspace @codigdex/mobile
-        env:
-          CI: "true"
+      # Bundle the React Native + Skia application for both platforms without
+      # requiring Android Studio or Xcode on the Linux runner.
+      - name: Verify native mobile bundles
+        run: npm run build:mobile
       - run: npm run build:web
       - name: Cache Playwright browsers
         uses: actions/cache@v4

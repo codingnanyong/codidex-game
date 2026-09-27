@@ -23,8 +23,8 @@
     "@codigdex/quiz-content": "*",
     "next": "16.3.4",
     "phaser": "^4.2.1",
-    "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",

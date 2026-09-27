@@ -7,11 +7,7 @@ export interface AsyncStringStorage {
   removeItem(key: string): Promise<void>;
 }
 
-const readableKeys = [
-  SAVE_STORAGE_KEYS.current,
-  SAVE_STORAGE_KEYS.previous,
-  SAVE_STORAGE_KEYS.legacy,
-] as const;
+const readableKeys = [SAVE_STORAGE_KEYS.current, SAVE_STORAGE_KEYS.previous, SAVE_STORAGE_KEYS.legacy] as const;
 
 export function createAsyncSaveStorage(storage: AsyncStringStorage): SaveStorage {
   return {
@@ -23,27 +19,18 @@ export function createAsyncSaveStorage(storage: AsyncStringStorage): SaveStorage
         } catch {
           return createEmptySave();
         }
-
         const save = raw ? parseSave(raw) : undefined;
         if (!save) continue;
-
         if (key !== SAVE_STORAGE_KEYS.current) {
-          try {
-            await storage.setItem(SAVE_STORAGE_KEYS.current, JSON.stringify(save));
-          } catch {
-            // Restoring a valid legacy save is more important than caching its migration.
-          }
+          await storage.setItem(SAVE_STORAGE_KEYS.current, JSON.stringify(save)).catch(() => undefined);
         }
         return save;
       }
-
       return createEmptySave();
     },
-
     async save(value: StoredGameStateV3) {
       await storage.setItem(SAVE_STORAGE_KEYS.current, JSON.stringify(value));
     },
-
     async clear() {
       await Promise.all(readableKeys.map((key) => storage.removeItem(key)));
     },

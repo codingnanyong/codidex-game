@@ -1,36 +1,19 @@
-import type { PropsWithChildren, ReactNode } from "react";
+import type { PropsWithChildren } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "./theme";
 
-interface ScreenProps extends PropsWithChildren {
-  scroll?: boolean;
-  header?: ReactNode;
-}
-
-export function Screen({ children, header, scroll = true }: ScreenProps) {
-  const content = (
-    <View style={styles.content}>
-      {header}
-      {children}
-    </View>
-  );
-
+export function Screen({ children, scroll = false }: PropsWithChildren<{ scroll?: boolean }>) {
+  const content = <View style={styles.content}>{children}</View>;
   return (
     <SafeAreaView edges={["top", "right", "bottom", "left"]} style={styles.safeArea}>
-      {scroll ? (
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-          {content}
-        </ScrollView>
-      ) : (
-        content
-      )}
+      {scroll ? <ScrollView contentContainerStyle={styles.scroll}>{content}</ScrollView> : content}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { backgroundColor: colors.background, flex: 1 },
-  scrollContent: { flexGrow: 1 },
-  content: { flex: 1, paddingBottom: 24, paddingHorizontal: 20, paddingTop: 14 },
+  content: { flex: 1, paddingHorizontal: 18, paddingVertical: 12 },
+  scroll: { flexGrow: 1 },
 });

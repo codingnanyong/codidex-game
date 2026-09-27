@@ -10,6 +10,8 @@ export const colors = {
   border: "#285269",
   danger: "#ff7b86",
   shadow: "#02090e",
+  grass: "#173b36",
+  path: "#775f45"
 } as const;
 
-export const font = "Galmuri14";
+export const font = "monospace";
