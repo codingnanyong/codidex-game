@@ -1,23 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Press_Start_2P } from "next/font/google";
 import { assetUrl } from "@/lib/assets";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const pressStart2P = Press_Start_2P({
-  variable: "--font-pixel-en",
-  weight: "400",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Codigdex",
@@ -38,11 +21,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="ko"
-      suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${pressStart2P.variable} h-full antialiased`}
-    >
+    <html lang="ko" suppressHydrationWarning className="h-full antialiased">
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

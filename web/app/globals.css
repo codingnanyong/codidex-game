@@ -22,14 +22,14 @@
   --muted: #7a6248;
   --accent: #a33422;
   /* Galmuri is a Korean-and-Latin bitmap font, so it covers every string this
-     game actually renders. Press Start 2P (--font-pixel-en, from next/font)
-     stays reserved for the Latin-only "CODIGDEX" wordmark.
+     game renders without making production builds depend on Google Fonts.
 
      Galmuri7 is reserved at 7px for symbols and short English labels. Korean
      captions and body copy use the native 14px face so compound vowels and
      final consonants remain distinct when the game canvas is scaled down.
      Pick sizes through lib/phaser/pixelFont.ts rather than hardcoding them. */
   --font-pixel: "Galmuri7";
+  --font-pixel-en: "Galmuri7";
   /* 14px body copy uses Galmuri14 instead: same footprint as Galmuri7 at 2x,
      but drawn on a 14px grid, so Hangul finals and compound vowels stay
      legible instead of clumping into blocks. */
@@ -41,10 +41,6 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-pixel: var(--font-pixel);
-  --font-pixel-en: var(--font-pixel-en);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -59,7 +55,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 /* Keep the game inside the visible viewport. `min-height` alone lets a 16:9

@@ -2,10 +2,44 @@
   "name": "@codigdex/mobile",
   "version": "1.0.1",
   "private": true,
+  "main": "expo/AppEntry",
+  "scripts": {
+    "generate:assets": "node scripts/generate-asset-map.mjs",
+    "start": "npm run generate:assets && expo start --dev-client",
+    "prebuild": "npm run generate:assets && expo prebuild",
+    "prebuild:clean": "npm run generate:assets && expo prebuild --clean",
+    "android": "npm run generate:assets && expo run:android",
+    "ios": "npm run generate:assets && expo run:ios",
+    "run:android": "npm run android",
+    "run:ios": "npm run ios",
+    "export:android": "npm run generate:assets && expo export --platform android --output-dir .tmp-expo-export/android",
+    "export:ios": "npm run generate:assets && expo export --platform ios --output-dir .tmp-expo-export/ios",
+    "open:android": "open -a 'Android Studio' android",
+    "open:ios": "open ios/Codigdex.xcworkspace",
+    "test": "vitest run",
+    "typecheck": "node scripts/generate-asset-map.mjs --check && tsc --noEmit"
+  },
   "dependencies": {
     "@codigdex/game-assets": "*",
     "@codigdex/game-content": "*",
     "@codigdex/game-core": "*",
-    "@codigdex/game-i18n": "*"
+    "@codigdex/game-i18n": "*",
+    "@codigdex/quiz-content": "*",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@shopify/react-native-skia": "2.6.2",
+    "expo": "~57.0.25",
+    "expo-status-bar": "57.0.1",
+    "expo-system-ui": "~57.0.4",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-reanimated": "4.5.1",
+    "react-native-safe-area-context": "5.7.0",
+    "react-native-worklets": "0.10.1"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "babel-preset-expo": "~57.0.9",
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.1"
   }
 }

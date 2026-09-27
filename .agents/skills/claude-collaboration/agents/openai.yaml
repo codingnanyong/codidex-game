@@ -1,0 +1,7 @@
+interface:
+  display_name: "Claude Collaboration"
+  short_description: "Delegate Codigdex docs and reviews to Claude Code"
+  default_prompt: "Use $claude-collaboration to delegate the Claude-owned portion of this Codigdex task and integrate the result."
+
+policy:
+  allow_implicit_invocation: true

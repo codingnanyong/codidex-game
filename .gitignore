@@ -6,6 +6,9 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Local agent state
+.claude/settings.local.json
+
 # Env & secrets
 .env
 .env.*

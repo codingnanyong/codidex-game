@@ -5,6 +5,11 @@
 # production
 /build
 
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+
 # synced from @codigdex/game-assets by scripts/sync-assets.mjs
 /public/assets/
 

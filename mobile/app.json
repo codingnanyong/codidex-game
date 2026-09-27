@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "Codigdex",
+    "slug": "codigdex",
+    "version": "1.0.1",
+    "orientation": "landscape",
+    "scheme": "codigdex",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.codingnanyong.codigdex",
+      "requireFullScreen": true
+    },
+    "android": {
+      "package": "com.codingnanyong.codigdex"
+    }
+  }
+}
