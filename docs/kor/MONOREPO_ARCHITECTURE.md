@@ -50,7 +50,7 @@ mobile ─────┼──> game-content ──> game-core
   정적 `require()`를 만들고, 저장소에 커밋되는
   `mobile/src/assets.generated.ts`로 출력합니다. `mobile/src/assets.ts`의
   `mobileAssetSource()`가 그 맵으로 키를 해석합니다. 번들러를 띄우는 모바일
-  스크립트(`start`, `start:tunnel`, `android`, `ios`, `export:android`,
+  스크립트(`start`, `android`, `ios`, `export:android`,
   `export:ios`)는 모두
   실행 전에 이 맵을 다시 생성하고, 모바일 `typecheck`는 생성기를 `--check`로
   돌려 커밋된 맵이 낡았으면 실패합니다.
@@ -66,30 +66,44 @@ mobile ─────┼──> game-content ──> game-core
 ## 모바일 구현
 
 `mobile/`은 워크스페이스 패키지를 직접 사용하는 Expo SDK 57 애플리케이션입니다
-(React Native 0.86, React 19). 자세한 내용은 `mobile/README.md`를 참고하세요.
+(React Native 0.86, React 19). 진입점은 `App.tsx`이며, 타이틀/월드/배틀/결과/
+도감/설정으로 이어지는 네이티브 게임 `NativeGame`을 렌더링합니다 — 순수 React
+Native 뷰와 월드 화면용 [React Native
+Skia](https://shopify.github.io/react-native-skia/) 캔버스로 만들어졌습니다.
+자세한 내용은 `mobile/README.md`를 참고하세요.
 
-- **내비게이션**은 `mobile/app/` 아래의 Expo Router 파일 기반 라우팅이며,
-  `app.json`에서 `typedRoutes`를 켜 두었습니다. 구현된 경로는 `/`(인트로),
-  `/dex`(도감 그리드), `/dex/[id]`(몬스터 카드), `/settings`(언어 선택)입니다.
+- **내비게이션**은 `mobile/src/game/NativeGame.tsx`의 메모리 내 라우트 상태
+  머신입니다(`"title" | "world" | "battle" | "result" | "dex" | "settings"`).
+  파일 기반 라우팅이 아닙니다 — 이번 스프린트에서 Expo Router와 기존의 읽기
+  전용 도감 전용 슬라이스를 실제로 플레이 가능한 루프로 교체했습니다.
 - **Phaser는 재사용하지 않습니다.** 모바일 화면은 순수 React Native
-  컴포넌트이며, 이 워크스페이스에는 캔버스도 WebView도 Phaser 의존성도 없습니다.
+  컴포넌트이며, 이 워크스페이스에는 WebView도 Phaser 의존성도 없습니다.
   웹의 씬 클래스는 `web/`에 그대로 둡니다. 두 클라이언트가 동일하게 동작해야 하는
   로직은 씬을 이식하지 말고 `game-core`나 `game-content`에 둡니다.
-- **사용 중인 공유 패키지:** 세이브 스키마·마이그레이션·로케일 계약은
-  `game-core`, `DEX_CATALOG`는 `game-content`, `translate()`는 `game-i18n`,
-  아트는 생성된 `require()` 맵을 통해 `game-assets`를 사용합니다. 전투와 포획 퀴즈
-  흐름은 아직 웹 전용이므로 `quiz-content`는 의도적으로 모바일 의존성에서
-  제외했습니다.
+- **사용 중인 공유 패키지:** 세이브 스키마·마이그레이션·로케일 계약·퀴즈 뽑기는
+  `game-core`, `CHAPTERS`와 `DEX_MONSTERS`는 `game-content`, 배틀 화면의
+  `loadQuizPack()`은 `quiz-content` — 전투와 포획 퀴즈 흐름이 이제 웹뿐 아니라
+  모바일에서도 동작합니다 — 아트는 생성된 `require()` 맵을 통해 `game-assets`를
+  사용합니다.
 - **영속성**은 `@react-native-async-storage/async-storage`를 `mobile/src/storage/`
   에서 공유 `SaveStorage` 계약에 연결한 구조입니다. `load()`는
   `codigdex:save:v3` → `:v2` → `:v1` 순서로 읽고, `game-core`의 `parseSave()`가
   v1·v2 데이터를 `StoredGameStateV3`로 마이그레이션하며, 마이그레이션된 결과는
   다시 v3 키에 기록됩니다. 데이터가 손상되었거나 읽기에 실패하면
-  `createEmptySave()`로 되돌아갑니다. 쓰기는 항상 v3 키에만 이뤄지고, 공유 규칙에는
-  순수 데이터만 전달합니다.
-- **서체**는 `galmuri` 패키지의 Galmuri14 비트맵 폰트이며 `app/_layout.tsx`에서
-  `expo-font`로 불러옵니다. 폰트 로딩이 끝나기 전까지 루트 레이아웃은 아무것도
-  렌더링하지 않습니다.
+  `createEmptySave()`로 되돌아갑니다. 쓰기는 항상 v3 키에만 이뤄지고, 현재 모든
+  쓰기는 `.catch(() => undefined)`로 실패를 그대로 삼킵니다 — 플레이어에게
+  드러나지 않는 이 문제는 다음 스프린트 작업으로 남겨두었습니다.
+- **네이티브 프로젝트가 저장소에 커밋됩니다.** 이번 스프린트에서 `android/`와
+  `ios/`를 필요할 때 생성하는 방식에서 커밋된 소스 트리로 바꿨습니다 — 빌드
+  산출물과 Pods만 git에서 무시됩니다. `app.json`의 `"orientation": "landscape"`는
+  `expo prebuild`로 두 플랫폼 모두에 반영됩니다. iOS는 현재 실행 즉시 종료됩니다 —
+  `Info.plist`에 `UIApplicationSceneManifest`가 없어 이 SDK의 UIKit이 요구하는
+  UIScene 라이프사이클 채택이 되어 있지 않기 때문이며, 이 역시 다음 스프린트로
+  넘겼습니다. Android는 실기기에서 빌드·설치 후 타이틀 화면까지 도달하는 것을
+  확인했습니다.
+- **서체**는 시스템 모노스페이스 폰트입니다(`mobile/src/ui/theme.ts`). 기존
+  Galmuri14 비트맵 폰트와 `expo-font` 로딩 게이트는 이번 스프린트에서
+  제거했습니다.
 
 ## 명령어
 
@@ -115,17 +129,19 @@ npm run export:android --workspace @codigdex/mobile
 npm run export:ios --workspace @codigdex/mobile
 ```
 
-Expo 개발 서버를 켜고 Expo Go로 QR 코드를 스캔합니다.
+이 앱은 Expo Go에 없는 네이티브 모듈(`@shopify/react-native-skia`,
+`react-native-reanimated`, `react-native-worklets`)에 의존하므로 Expo Go /
+QR 코드 경로가 없습니다. 먼저 네이티브 개발 빌드를 빌드·설치한 뒤 Metro를
+띄웁니다.
 
 ```bash
-# LAN — 기기와 컴퓨터가 같은 Wi-Fi에 있을 때
-npm run start --workspace @codigdex/mobile
+npm run android --workspace @codigdex/mobile   # 빌드·설치 후 Android에서 실행
+npm run ios --workspace @codigdex/mobile       # 빌드·설치 후 iOS에서 실행
 
-# 터널 — 네트워크가 다르거나 LAN이 개발 서버를 막을 때
-npm run start:tunnel --workspace @codigdex/mobile
+npm run start --workspace @codigdex/mobile     # expo start --dev-client
 ```
 
-`start`, `start:tunnel`, `android`, `ios`는 모두 Expo를 띄우기 전에 에셋 맵을
+`start`, `android`, `ios`는 모두 Expo를 띄우기 전에 에셋 맵을
 다시 생성하므로, 아트가 바뀌어도 `generate:assets`를 따로 실행할 필요가
 없습니다.
 

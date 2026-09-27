@@ -50,7 +50,7 @@ packages.
   static `require()` per key into the committed `mobile/src/assets.generated.ts`
   — Metro cannot resolve dynamic `require()` calls. `mobile/src/assets.ts`
   resolves a key through that map with `mobileAssetSource()`. Every mobile
-  script that feeds the bundler — `start`, `start:tunnel`, `android`, `ios`,
+  script that feeds the bundler — `start`, `android`, `ios`,
   `export:android`, `export:ios` — regenerates the map first, and the mobile
   `typecheck` runs the generator with `--check`, which fails while the committed
   map is stale.
@@ -66,31 +66,44 @@ packages.
 ## Mobile implementation
 
 `mobile/` is an Expo SDK 57 application (React Native 0.86, React 19) that
-consumes the workspace packages directly. See `mobile/README.md` for the full
-walkthrough.
+consumes the workspace packages directly. Entry point is `App.tsx`, which
+renders `NativeGame` — a native title/world/battle/result/dex/settings game
+built from plain React Native views plus a
+[React Native Skia](https://shopify.github.io/react-native-skia/) canvas for
+the world scene. See `mobile/README.md` for the full walkthrough.
 
-- **Navigation** is Expo Router file-based routing under `mobile/app/`, with
-  `typedRoutes` enabled in `app.json`. The implemented routes are `/` (intro),
-  `/dex` (grid), `/dex/[id]` (monster card), and `/settings` (locale picker).
+- **Navigation** is an in-memory route state machine in
+  `mobile/src/game/NativeGame.tsx` (`"title" | "world" | "battle" | "result" |
+  "dex" | "settings"`), not file-based routing — Expo Router and the earlier
+  read-only dex-only slice were replaced by this sprint's playable loop.
 - **Phaser is not reused.** Mobile screens are plain React Native components;
-  there is no canvas, WebView, or Phaser dependency in the workspace. Web scene
+  there is no WebView or Phaser dependency in the workspace. Web scene
   classes stay in `web/`. Behavior that must match both clients belongs in
   `game-core` or `game-content`, not in a ported scene.
-- **Shared packages in use:** `game-core` for the save schema, migrations, and
-  locale contracts; `game-content` for `DEX_CATALOG`; `game-i18n` for
-  `translate()`; `game-assets` for art through the generated `require()` map.
-  `quiz-content` is intentionally not a mobile dependency yet — the battle and
-  capture-quiz loop is still web-only.
+- **Shared packages in use:** `game-core` for the save schema, migrations,
+  locale contracts, and quiz drawing; `game-content` for `CHAPTERS` and
+  `DEX_MONSTERS`; `quiz-content` for `loadQuizPack()` in the battle screen —
+  the battle and capture-quiz loop now runs on mobile as well as web;
+  `game-assets` for art through the generated `require()` map.
 - **Persistence** is `@react-native-async-storage/async-storage` bound to the
   shared `SaveStorage` contract in `mobile/src/storage/`. `load()` reads
   `codigdex:save:v3`, then `:v2`, then `:v1`; `parseSave()` from `game-core`
   migrates v1 and v2 payloads to `StoredGameStateV3`, and a migrated result is
   written back to the v3 key. Corrupt data or a read failure falls back to
-  `createEmptySave()`. Writes only ever target the v3 key. Only plain data
-  crosses into the shared rules.
-- **Typography** is the Galmuri14 bitmap font from the `galmuri` package, loaded
-  with `expo-font` in `app/_layout.tsx`; the root layout renders nothing until
-  the font resolves.
+  `createEmptySave()`. Writes only ever target the v3 key, and every write is
+  currently `.catch(() => undefined)` — a failure is swallowed rather than
+  surfaced (accepted next-sprint work).
+- **Native projects are committed.** This sprint moved `android/` and `ios/`
+  from generated-on-demand to checked-in source trees; only build output and
+  Pods are git-ignored. `app.json`'s `"orientation": "landscape"` is baked
+  into both via `expo prebuild`. iOS currently exits immediately on launch —
+  `Info.plist` has no `UIApplicationSceneManifest`, and UIKit on this SDK
+  requires UIScene lifecycle adoption — which is also accepted next-sprint
+  work; Android has been confirmed to build, install, and reach the title
+  screen on a physical device.
+- **Typography** is the system monospace font (`mobile/src/ui/theme.ts`); the
+  earlier Galmuri14 bitmap font and its `expo-font` loading gate were dropped
+  this sprint.
 
 ## Commands
 
@@ -116,19 +129,20 @@ npm run export:android --workspace @codigdex/mobile
 npm run export:ios --workspace @codigdex/mobile
 ```
 
-Start the Expo dev server and scan the QR code with Expo Go:
+The app depends on native modules Expo Go does not ship
+(`@shopify/react-native-skia`, `react-native-reanimated`,
+`react-native-worklets`), so there is no Expo Go / QR-code path. Build and
+install a native dev build first, then start Metro against it:
 
 ```bash
-# LAN — device and computer on the same Wi-Fi
-npm run start --workspace @codigdex/mobile
+npm run android --workspace @codigdex/mobile   # build, install, and launch on Android
+npm run ios --workspace @codigdex/mobile       # build, install, and launch on iOS
 
-# Tunnel — different networks, or a LAN that blocks the dev server
-npm run start:tunnel --workspace @codigdex/mobile
+npm run start --workspace @codigdex/mobile     # expo start --dev-client
 ```
 
-`start`, `start:tunnel`, `android`, and `ios` all regenerate the asset map
-before Expo starts, so a separate `generate:assets` run is no longer needed
-after changing art.
+`start`, `android`, and `ios` all regenerate the asset map before Expo starts,
+so a separate `generate:assets` run is no longer needed after changing art.
 
 `export:android` and `export:ios` are the bundler-level checks for mobile. Each
 regenerates the asset map and then runs `expo export` for one platform, into its
