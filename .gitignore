@@ -7,7 +7,18 @@ Thumbs.db
 .idea/
 
 # Local agent state
+CLAUDE.local.md
 .claude/settings.local.json
+.claude/worktrees/
+.claude/agents/
+.claude/commands/
+.claude/output-styles/
+.claude/rules/
+.claude/skills/
+.agents/
+.codex/agents/
+.codex/skills/
+.codex/*.local.*
 
 # Env & secrets
 .env

@@ -74,6 +74,29 @@ npm run dev --workspace @codigdex/web
 
 Open [http://localhost:3001](http://localhost:3001) in your browser. Run the tests with `npm run test`.
 
+## Agent workspace
+
+Two agents work this repository — Claude and Codex — and they share one configuration tree. Eight folders at the repository root are the **only** source of truth for agent config:
+
+| Folder | Holds |
+| --- | --- |
+| `agents/` | Subagent definitions |
+| `commands/` | Slash commands |
+| `hooks/` | Hook scripts |
+| `output-styles/` | Output styles |
+| `plugins/` | Plugin registry |
+| `rules/` | Short always-on rules |
+| `skills/` | Skills (one `SKILL.md` per folder) |
+| `templates/` | Document templates |
+
+Every entry inside those folders starts with `shared-` (both agents), `claude-` (Claude only), or `codex-` (Codex only).
+
+`npm run setup:agents` (also wired as `postinstall`, so `npm install` alone runs it) creates **directory links** — symlinks on POSIX, junctions on Windows — under `.claude/`, `.codex/`, and `.agents/` pointing from each tool's expected location to the matching root folder. All of those link paths are git-ignored, so the root folders remain the only source of truth. Never edit or commit files through a link path; change the root folder instead.
+
+`.claude/settings.json` is the **only** tracked Claude-specific safety config (permission denials plus the protected-path hook and status-line registrations). `CLAUDE.md` merely imports `@AGENTS.md`, so rules belong in [AGENTS.md](AGENTS.md).
+
+After changing any of this, run `npm run check:agents` to verify the links, required files, prefixes, and hook behavior — CI runs the same command. At handoff, write the report using [templates/shared-handoff.md](templates/shared-handoff.md). Full rules live under "Agent workspace layout" in [AGENTS.md](AGENTS.md).
+
 ## Docs
 
 - [Game Design Document](docs/eng/GAME_DESIGN.md) — game rules, screens, visual guide

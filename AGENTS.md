@@ -31,9 +31,62 @@ Two agents work this repo — Claude and Codex. Ownership is decided by **change
 
 ### Operational files
 
-- **`.github/` (workflows, issue/PR templates, scripts) and tool config** — root and workspace `package.json` scripts, `tsconfig`, lint/test config, and `.claude/` command definitions — are owned by the **active feature owner** for the task that needs them, and reviewed by the other agent before the task is called done.
+- **`.github/` (workflows, issue/PR templates, scripts) and tool config** — root and workspace `package.json` scripts, `tsconfig`, lint/test config, and everything in the canonical agent folders described under **Agent workspace layout** — are owned by the **active feature owner** for the task that needs them, and reviewed by the other agent before the task is called done.
 
 Because ownership moves from task to task, the handoff report under **Editing constraints** is what makes the next agent's start cheap. Name the files you touched, the assets you generated, and anything you deliberately left undone — especially work that falls in the other agent's lane.
+
+## Agent workspace layout
+
+Both agents share one configuration tree. Eight folders at the repository root are the **only** source of truth for agent-facing config:
+
+| Folder | Holds |
+| --- | --- |
+| `agents/` | Subagent definitions. Frontmatter must define `name`, `description`, `tools`. |
+| `commands/` | Slash commands. Frontmatter must define `description`. |
+| `hooks/` | Hook scripts, invoked by absolute `$CLAUDE_PROJECT_DIR` path. |
+| `output-styles/` | Output styles. Frontmatter must define `name`, `description`. |
+| `plugins/` | Plugin registry (`shared-registry.json`, holding a `plugins` array). |
+| `rules/` | Short standing rules loaded as agent context. |
+| `skills/` | Skills — one directory per skill, each with a `SKILL.md`. |
+| `templates/` | Reusable document templates. |
+
+### Naming prefixes
+
+Every entry inside those eight folders must start with one of three prefixes (a folder's own `README.md` is the only exception):
+
+- `shared-` — applies to both Claude and Codex. Prefer this; most config is shared.
+- `claude-` — Claude only (e.g. `hooks/claude-statusline.mjs`, `commands/claude-delegate-codex.md`).
+- `codex-` — Codex only.
+
+The prefix is the entire ownership signal at a glance, so don't reach for a tool-specific one unless the file genuinely cannot serve the other agent. `npm run check:agents` fails on an unprefixed entry.
+
+### Tool-native directories are generated links, never sources
+
+`npm run setup:agents` (also wired as `postinstall`, so a plain `npm install` is enough) runs `scripts/link-agent-workspace.mjs`, which creates **directory links** — symlinks on POSIX, junctions on Windows — from each tool's expected location to the matching root folder:
+
+```text
+.claude/agents        →  agents/
+.claude/commands      →  commands/
+.claude/output-styles →  output-styles/
+.claude/rules         →  rules/
+.claude/skills        →  skills/
+.codex/agents         →  agents/
+.codex/skills         →  skills/
+.agents/skills        →  skills/
+```
+
+Every one of those link paths is git-ignored. They exist only so Claude Code and Codex can each discover the same files under the names they look for — the root folders stay the single source of truth. Never edit, add, or delete a file *through* a link path, and never commit one of those directories: change the root folder and let the link follow. `link-agent-workspace.mjs --check` re-runs the same logic in verification mode and fails if a link is missing, has been replaced by a copied tree, or points somewhere other than its root folder.
+
+`hooks/`, `plugins/`, and `templates/` get no links — they are referenced by explicit repository path, so the root folder is the only path that ever appears.
+
+### Tracked Claude-specific config
+
+`.claude/settings.json` is the **only** tracked Claude-specific safety config. It carries the permission denials (force-push, `rm -rf`) plus the two registrations that point back at the root `hooks/` folder: the `PreToolUse` protected-path hook (`hooks/shared-protect-paths.mjs`, matching `Edit|Write|NotebookEdit|Bash`) and the status line (`hooks/claude-statusline.mjs`). Nothing else under `.claude/` is tracked. `CLAUDE.md` adds no rules of its own — it imports this file with `@AGENTS.md`, so behavioral rules belong here, not there.
+
+### Verifying and handing off
+
+- `npm run check:agents` is the gate. It runs the link check (`link-agent-workspace.mjs --check`), then `scripts/check-agent-setup.mjs` (required files, prefixes, frontmatter, settings wiring, `.gitignore` entries), then `scripts/check-agent-hooks.mjs` (protected-path hook behavior). CI runs it in `.github/workflows/ci.yml` ahead of typecheck, lint, and tests — run it locally before handoff so a config change never fails on the other agent's push.
+- Write the handoff report from `templates/shared-handoff.md`. It is the canonical shape for the report **Editing constraints** requires: owner, reviewer, scope, changed files, generated assets, checks run, remaining risks.
 
 ## PR & issue policy
 
@@ -54,7 +107,7 @@ On merge into `develop`, CI auto-closes the mirrored GitHub issue; Linear's nati
 
 - Do not publish, upload, create a pull request, merge branches, or message external services without explicit user authorization (opening a PR as part of the normal Linear/GitHub flow above is fine; merging and any external-facing action still needs a go-ahead).
 - Keep unrelated user changes intact.
-- At handoff, report the changed files, any generated assets, and remaining review items.
+- At handoff, report the changed files, any generated assets, and remaining review items — use `templates/shared-handoff.md` as the shape.
 
 <!-- Add project-specific sections here: coding style, test commands, domain
 vocabulary, content voice, image/asset rules, etc. -->
