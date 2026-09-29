@@ -16,11 +16,22 @@ function isProtectedEnvironmentFile(fileName) {
 
 function commandProtectionReason(command) {
   const normalized = command.replaceAll("\\", "/");
-  if (normalized.includes("web/public/assets")) {
+  const mutatesFiles =
+    /(?:^|[;&|]\s*)(?:cp|del|install|mkdir|move|mv|rm|rmdir|touch|truncate)\b/i.test(
+      normalized,
+    ) ||
+    /(?:^|[;&|]\s*)(?:perl|sed)\b[^;&|]*(?:-i|-pi)\b/i.test(normalized) ||
+    /(?:^|\s)(?:>{1,2}|tee\b)/i.test(normalized);
+
+  if (mutatesFiles && normalized.includes("web/public/assets")) {
     return "web/public/assets is generated; edit packages/game-assets/files instead.";
   }
 
-  const environmentPaths = normalized.match(/\.env(?:\.[A-Za-z0-9_-]+)?/g) ?? [];
+  const environmentPaths = [
+    ...normalized.matchAll(
+      /(?:^|[\s/"'=(:])(?<file>\.env(?:\.[A-Za-z0-9_-]+)?)(?=$|[\s/"';&|)])/g,
+    ),
+  ].map((match) => match.groups.file);
   if (environmentPaths.some((file) => isProtectedEnvironmentFile(file))) {
     return "Environment files may contain machine-local secrets and must not be accessed by an agent.";
   }
