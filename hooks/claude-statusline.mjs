@@ -12,7 +12,13 @@ try {
 
 let branch = "no-git";
 try {
+  const gitDirectory =
+    status?.workspace?.project_dir ??
+    status?.workspace?.current_dir ??
+    process.env.CLAUDE_PROJECT_DIR ??
+    process.cwd();
   branch = execFileSync("git", ["branch", "--show-current"], {
+    cwd: gitDirectory,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "ignore"],
   }).trim() || "detached";

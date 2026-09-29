@@ -1,24 +1,59 @@
-import { basename, resolve, relative, sep } from "node:path";
+import { basename, isAbsolute, resolve, relative, sep } from "node:path";
 import { pathToFileURL } from "node:url";
 
-export function protectionReason(event, workingDirectory = process.cwd()) {
+const editableEnvironmentTemplates = new Set([
+  ".env.example",
+  ".env.sample",
+  ".env.template",
+]);
+
+function isProtectedEnvironmentFile(fileName) {
+  return (
+    !editableEnvironmentTemplates.has(fileName) &&
+    (fileName === ".env" || fileName.startsWith(".env."))
+  );
+}
+
+function commandProtectionReason(command) {
+  const normalized = command.replaceAll("\\", "/");
+  if (normalized.includes("web/public/assets")) {
+    return "web/public/assets is generated; edit packages/game-assets/files instead.";
+  }
+
+  const environmentPaths = normalized.match(/\.env(?:\.[A-Za-z0-9_-]+)?/g) ?? [];
+  if (environmentPaths.some((file) => isProtectedEnvironmentFile(file))) {
+    return "Environment files may contain machine-local secrets and must not be accessed by an agent.";
+  }
+  return null;
+}
+
+export function protectionReason(
+  event,
+  projectDirectory = process.env.CLAUDE_PROJECT_DIR ?? process.cwd(),
+) {
+  if (event?.tool_name === "Bash" && event?.tool_input?.command) {
+    return commandProtectionReason(event.tool_input.command);
+  }
+
   const candidate =
     event?.tool_input?.file_path ?? event?.tool_input?.notebook_path ?? "";
   if (!candidate) return null;
 
-  const root = resolve(workingDirectory);
-  const target = resolve(root, candidate);
+  const root = resolve(projectDirectory);
+  const eventDirectory = resolve(event?.cwd ?? root);
+  const target = isAbsolute(candidate)
+    ? resolve(candidate)
+    : resolve(eventDirectory, candidate);
   const repoPath = relative(root, target).split(sep).join("/");
   const fileName = basename(target);
-  const isEnvironmentFile =
-    fileName === ".env" || fileName.startsWith(".env.");
+  const isEnvironmentFile = isProtectedEnvironmentFile(fileName);
   const isGeneratedAsset =
     repoPath === "web/public/assets" ||
     repoPath.startsWith("web/public/assets/");
 
   if (!isEnvironmentFile && !isGeneratedAsset) return null;
   return isEnvironmentFile
-    ? "Environment files contain machine-local secrets and must not be edited by an agent."
+    ? "Environment files may contain machine-local secrets and must not be accessed by an agent."
     : "web/public/assets is generated; edit packages/game-assets/files instead.";
 }
 

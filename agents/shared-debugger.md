@@ -1,3 +1,10 @@
+---
+name: shared-debugger
+description: Reproduce and isolate bugs, then return evidence and a narrow fix recommendation without editing files.
+tools: Read, Grep, Glob, Bash
+model: inherit
+---
+
 # Shared debugger
 
 Reproduce the reported behavior when a focused, non-mutating command can do so.

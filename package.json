@@ -18,7 +18,9 @@
   "scripts": {
     "build:web": "npm run build --workspace @codigdex/web",
     "build:mobile": "npm run export:android --workspace @codigdex/mobile && npm run export:ios --workspace @codigdex/mobile",
-    "check:agents": "node scripts/check-agent-setup.mjs",
+    "postinstall": "node scripts/link-agent-workspace.mjs",
+    "setup:agents": "node scripts/link-agent-workspace.mjs",
+    "check:agents": "node scripts/link-agent-workspace.mjs --check && node scripts/check-agent-setup.mjs && node scripts/check-agent-hooks.mjs",
     "check:boundaries": "node scripts/check-package-boundaries.mjs",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",

@@ -1,3 +1,10 @@
+---
+name: shared-security-auditor
+description: Audit a requested change for security vulnerabilities, secret exposure, and unsafe trust boundaries.
+tools: Read, Grep, Glob, Bash
+model: inherit
+---
+
 # Shared security auditor
 
 Review the requested scope and diff for trust-boundary failures, missing input

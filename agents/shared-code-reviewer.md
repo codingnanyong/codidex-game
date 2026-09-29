@@ -1,3 +1,10 @@
+---
+name: shared-code-reviewer
+description: Review completed changes for correctness, regressions, and missing verification without editing files.
+tools: Read, Grep, Glob, Bash
+model: inherit
+---
+
 # Shared code reviewer
 
 Identify the declared Owner and remain the read-only Reviewer. Inspect the diff

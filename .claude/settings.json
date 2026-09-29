@@ -10,11 +10,11 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Edit|Write|NotebookEdit",
+        "matcher": "Edit|Write|NotebookEdit|Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "node hooks/shared-protect-paths.mjs",
+            "command": "node \"$CLAUDE_PROJECT_DIR/hooks/shared-protect-paths.mjs\"",
             "timeout": 5,
             "statusMessage": "Checking protected paths"
           }
@@ -24,7 +24,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "node hooks/claude-statusline.mjs",
+    "command": "node \"$CLAUDE_PROJECT_DIR/hooks/claude-statusline.mjs\"",
     "padding": 0
   }
 }
