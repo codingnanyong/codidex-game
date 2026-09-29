@@ -74,6 +74,29 @@ npm run dev --workspace @codigdex/web
 
 브라우저에서 [http://localhost:3001](http://localhost:3001)을 엽니다. 테스트는 `npm run test`로 실행합니다.
 
+## 에이전트 작업 공간
+
+이 저장소는 Claude와 Codex 두 에이전트가 함께 작업하고, 두 에이전트는 하나의 설정 트리를 공유합니다. 저장소 루트의 여덟 폴더가 에이전트 설정의 **유일한** 원본입니다.
+
+| 폴더 | 내용 |
+| --- | --- |
+| `agents/` | 서브에이전트 정의 |
+| `commands/` | 슬래시 커맨드 |
+| `hooks/` | 훅 스크립트 |
+| `output-styles/` | 출력 스타일 |
+| `plugins/` | 플러그인 레지스트리 |
+| `rules/` | 항상 적용되는 짧은 규칙 |
+| `skills/` | 스킬 (폴더마다 `SKILL.md`) |
+| `templates/` | 문서 템플릿 |
+
+폴더 안의 모든 항목은 `shared-`(두 에이전트 공용), `claude-`(Claude 전용), `codex-`(Codex 전용) 중 하나로 시작합니다.
+
+`npm run setup:agents`(`postinstall`에도 연결되어 있어 `npm install`만으로도 실행됩니다)는 `.claude/`, `.codex/`, `.agents/` 아래에 각 도구가 기대하는 위치에서 위 루트 폴더로 향하는 **디렉터리 링크**(POSIX는 심볼릭 링크, Windows는 junction)를 만듭니다. 이 링크 경로는 모두 git에서 무시되므로, 루트 폴더가 여전히 유일한 원본입니다. 링크 경로를 통해 파일을 고치거나 커밋하지 말고 루트 폴더를 수정하세요.
+
+`.claude/settings.json`은 저장소가 추적하는 **유일한** Claude 전용 안전 설정입니다(권한 차단 목록, 보호 경로 훅과 상태줄 등록). `CLAUDE.md`는 `@AGENTS.md`를 가져오기만 하므로 규칙은 [AGENTS.md](AGENTS.md)에 적습니다.
+
+설정을 바꾼 뒤에는 `npm run check:agents`로 링크·필수 파일·접두사·훅 동작을 검증하세요(CI도 같은 명령을 실행합니다). 작업을 넘길 때는 [templates/shared-handoff.md](templates/shared-handoff.md) 형식으로 인수인계 보고를 씁니다. 자세한 규칙은 [AGENTS.md](AGENTS.md)의 "Agent workspace layout"에 있습니다.
+
 ## 문서
 
 - [게임 기획서](docs/kor/GAME_DESIGN.md) — 게임 규칙, 화면, 비주얼 가이드

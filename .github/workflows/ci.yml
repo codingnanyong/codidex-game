@@ -8,6 +8,20 @@ on:
       - "web/**"
       - "package.json"
       - "package-lock.json"
+      - ".agents/**"
+      - ".claude/**"
+      - ".codex/**"
+      - ".mcp.json"
+      - "agents/**"
+      - "commands/**"
+      - "hooks/**"
+      - "output-styles/**"
+      - "plugins/**"
+      - "rules/**"
+      - "scripts/check-agent-*.mjs"
+      - "scripts/link-agent-workspace.mjs"
+      - "skills/**"
+      - "templates/**"
       - ".github/workflows/ci.yml"
 
 permissions:
@@ -24,6 +38,7 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
       - run: npm ci
+      - run: npm run check:agents
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
